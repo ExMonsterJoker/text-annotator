@@ -1,6 +1,4 @@
-// src/components/FileManager.jsx
 import React, { useRef } from 'react';
-import { Upload, Download } from 'lucide-react';
 
 const FileManager = ({ annotations, onLoad }) => {
     const fileInputRef = useRef();
@@ -35,17 +33,22 @@ const FileManager = ({ annotations, onLoad }) => {
     };
 
     return (
-        <div className="file-manager">
-            <h3>File Management</h3>
+        <div className="file-manager p-4 border border-gray-300 rounded-md bg-white text-black max-w-md mx-auto">
+            <h3 className="text-lg font-semibold mb-4">File Management</h3>
 
-            <div className="file-actions">
-                <button onClick={() => fileInputRef.current?.click()}>
-                    <Upload size={16} />
+            <div className="file-actions flex space-x-4 mb-4">
+                <button
+                    className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition"
+                    onClick={() => fileInputRef.current?.click()}
+                >
                     Import JSON
                 </button>
 
-                <button onClick={handleExport} disabled={annotations.length === 0}>
-                    <Download size={16} />
+                <button
+                    className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition disabled:opacity-50"
+                    onClick={handleExport}
+                    disabled={annotations.length === 0}
+                >
                     Export JSON
                 </button>
             </div>
@@ -58,7 +61,7 @@ const FileManager = ({ annotations, onLoad }) => {
                 style={{ display: 'none' }}
             />
 
-            <div className="stats">
+            <div className="stats text-sm text-gray-700">
                 <p>Total Annotations: {annotations.length}</p>
             </div>
         </div>

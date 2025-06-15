@@ -1,6 +1,6 @@
-// src/components/AnnotationCanvas.jsx
 import React, { useEffect, useRef } from 'react';
 import { Annotorious } from '@recogito/annotorious';
+import { bboxPointsToRect } from '../utils/annotationUtils';
 
 const AnnotationCanvas = ({ annotations, onAnnotationSelect, onAnnotationsChange }) => {
     const imageRef = useRef();
@@ -13,6 +13,25 @@ const AnnotationCanvas = ({ annotations, onAnnotationSelect, onAnnotationsChange
                 image: imageRef.current,
                 widgets: ['COMMENT', 'TAG']
             });
+
+            // Convert bbox points array to rect format for Annotorious before loading
+            const convertedAnnotations = annotations.map(annotation => {
+                if (annotation.target?.selector?.value && Array.isArray(annotation.target.selector.value)) {
+                    return {
+                        ...annotation,
+                        target: {
+                            ...annotation.target,
+                            selector: {
+                                ...annotation.target.selector,
+                                value: bboxPointsToRect(annotation.target.selector.value)
+                            }
+                        }
+                    };
+                }
+                return annotation;
+            });
+
+            annoRef.current.loadAnnotations(convertedAnnotations);
 
             // Handle annotation events
             annoRef.current.on('createAnnotation', (annotation) => {
@@ -35,7 +54,7 @@ const AnnotationCanvas = ({ annotations, onAnnotationSelect, onAnnotationsChange
                 annoRef.current.destroy();
             }
         };
-    }, []);
+    }, [annotations]);
 
     return (
         <div className="annotation-canvas">
