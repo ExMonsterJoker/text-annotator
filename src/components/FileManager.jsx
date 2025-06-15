@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { Download, Upload, FileText, AlertCircle } from 'lucide-react';
 
 const FileManager = ({ annotations, onLoad }) => {
     const fileInputRef = useRef();
@@ -10,13 +11,19 @@ const FileManager = ({ annotations, onLoad }) => {
             reader.onload = (e) => {
                 try {
                     const data = JSON.parse(e.target.result);
-                    onLoad(data);
+                    if (Array.isArray(data)) {
+                        onLoad(data);
+                    } else {
+                        alert('Invalid file format. Expected an array of annotations.');
+                    }
                 } catch (error) {
-                    alert('Invalid JSON file');
+                    alert('Invalid JSON file. Please check the file format.');
                 }
             };
             reader.readAsText(file);
         }
+        // Reset input value to allow re-importing the same file
+        event.target.value = '';
     };
 
     const handleExport = () => {
@@ -26,43 +33,65 @@ const FileManager = ({ annotations, onLoad }) => {
         const url = URL.createObjectURL(dataBlob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = 'annotations.json';
+        link.download = `annotations-${new Date().toISOString().split('T')[0]}.json`;
         link.click();
 
         URL.revokeObjectURL(url);
     };
 
     return (
-        <div className="file-manager p-4 border border-gray-300 rounded-md bg-white text-black max-w-md mx-auto">
-            <h3 className="text-lg font-semibold mb-4">File Management</h3>
+        <div className="card p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <FileText className="w-5 h-5 mr-2" />
+                File Management
+            </h3>
 
-            <div className="file-actions flex space-x-4 mb-4">
-                <button
-                    className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition"
-                    onClick={() => fileInputRef.current?.click()}
-                >
-                    Import JSON
-                </button>
+            <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <button
+                        className="btn-secondary flex items-center justify-center flex-1"
+                        onClick={() => fileInputRef.current?.click()}
+                    >
+                        <Upload className="w-4 h-4 mr-2" />
+                        Import JSON
+                    </button>
 
-                <button
-                    className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition disabled:opacity-50"
-                    onClick={handleExport}
-                    disabled={annotations.length === 0}
-                >
-                    Export JSON
-                </button>
-            </div>
+                    <button
+                        className="btn-primary flex items-center justify-center flex-1"
+                        onClick={handleExport}
+                        disabled={annotations.length === 0}
+                    >
+                        <Download className="w-4 h-4 mr-2" />
+                        Export JSON
+                    </button>
+                </div>
 
-            <input
-                ref={fileInputRef}
-                type="file"
-                accept=".json"
-                onChange={handleImport}
-                style={{ display: 'none' }}
-            />
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".json"
+                    onChange={handleImport}
+                    className="hidden"
+                />
 
-            <div className="stats text-sm text-gray-700">
-                <p>Total Annotations: {annotations.length}</p>
+                <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Total Annotations:</span>
+                        <span className="font-semibold text-gray-900">{annotations.length}</span>
+                    </div>
+
+                    {annotations.length === 0 && (
+                        <div className="mt-3 flex items-center text-amber-600 text-sm">
+                            <AlertCircle className="w-4 h-4 mr-2" />
+                            No annotations to export
+                        </div>
+                    )}
+                </div>
+
+                <div className="text-xs text-gray-500">
+                    <p>• Import: Load annotations from a JSON file</p>
+                    <p>• Export: Save current annotations as JSON</p>
+                </div>
             </div>
         </div>
     );
